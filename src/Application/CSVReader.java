@@ -44,11 +44,20 @@ public class CSVReader {
 				Company company = new Company();
 				try {
 					String returnString[] = GetABN.getABN(searchTerm);
+					
+					if (customerIsAustralian(splitLine[10])) {
+						company.setAbn(returnString[1]);
+						company.setName(returnString[5]);
+						company.setState(returnString[11]);
+						company.setPostcode(returnString[12]);
+					} else {
+						company.setAbn("");
+						company.setName(searchTerm);
+						company.setState("");
+						company.setPostcode("");
+					}
 
-					company.setAbn(returnString[1]);
-					company.setName(returnString[5]);
-					company.setState(returnString[11]);
-					company.setPostcode(returnString[12]);
+
 				} catch (Exception e) {
 
 					company.setAbn("Null");
@@ -79,6 +88,19 @@ public class CSVReader {
 			}
 		}
 		return csvTotalLines;
+	}
+
+	// checks if the company country is Australian
+	private boolean customerIsAustralian(String country) {
+		if(!country.isEmpty()) {
+			if(country.contains("Australia")){
+				return true;
+			}
+			System.out.print("Foreigner!!");
+			return false;
+		}
+		System.out.print("No Country!!");
+		return false;
 	}
 
 }

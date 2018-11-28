@@ -1,6 +1,7 @@
 package Application;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -8,7 +9,6 @@ import java.io.FileWriter;
 public class CSVReader {
 
 	public int read(String csvFilePath, String csvFileName, String csvOutputName) {
-		GetABN getAbn = new GetABN();
 		FileWriter fw = null;
 		int csvTotalLines = 0;
 		String line = "";
@@ -21,7 +21,7 @@ public class CSVReader {
 			// Write the CSV file header
 			fw.append(FILE_HEADER.toString());
 		} catch (IOException e) {
-			System.out.println("Could not write to file " + e);
+			System.out.println("Could not write to file ");
 		}
 
 		try (BufferedReader br = new BufferedReader(new FileReader(csvFilePath + csvFileName))) {
@@ -34,7 +34,7 @@ public class CSVReader {
 				try {
 					// grab the customer name to search
 					// Customer state was also included, however this was returning less results
-					searchTerm = splitLine[1];
+					searchTerm = splitLine[0];
 				} catch (ArrayIndexOutOfBoundsException e1) {
 					// check that search value is not null
 					System.out.println("Please check Customer Name: " + splitLine[1]);
@@ -60,6 +60,7 @@ public class CSVReader {
 
 				} catch (Exception e) {
 
+					e.printStackTrace();
 					company.setAbn("Null");
 					company.setName("No results returned while searching for '" + searchTerm + "'");
 					company.setState("failed");
@@ -72,12 +73,13 @@ public class CSVReader {
 				System.out.println(company.getAbn() + ": " + company.getName());
 				csvTotalLines++;
 			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.print("Cannot read line: ");
 			System.out.println(e);
+		} catch (FileNotFoundException e) {
+			System.out.println("File could not be found: " + csvFilePath + csvFileName);
+		} catch (IOException e) {
+			//e.printStackTrace();
 		} finally {
 			try {
 				fw.flush();

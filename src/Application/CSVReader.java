@@ -7,65 +7,78 @@ import java.io.FileWriter;
 
 public class CSVReader {
 
-	public String read(String csvFilePath, String csvFileName, String csvOutputName) {
+	public int read(String csvFilePath, String csvFileName, String csvOutputName) {
 		GetABN getAbn = new GetABN();
 		FileWriter fw = null;
-		
-	    String line = "";
-	    String cvsSplitBy = ",";
-	    String FILE_HEADER = "SearchTerm,ABN,Company Name,State,Postcode" + "\n";
-	    
-	    // create the file writer
+		int csvTotalLines = 0;
+		String line = "";
+		String cvsSplitBy = ",";
+		String FILE_HEADER = "SearchTerm,ABN,Company Name,State,Postcode" + "\n";
+
+		// create the file writer
 		try {
 			fw = new FileWriter(csvFilePath + csvOutputName);
 			// Write the CSV file header
 			fw.append(FILE_HEADER.toString());
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("Could not write to file " + e);
 		}
 
-	    try (BufferedReader br = new BufferedReader(new FileReader(csvFilePath + csvFileName))) {
+		try (BufferedReader br = new BufferedReader(new FileReader(csvFilePath + csvFileName))) {
 
-	        while ((line = br.readLine()) != null) {
+			while ((line = br.readLine()) != null) {
 
-	            // use comma as separator
-	            String[] splitLine = line.split(cvsSplitBy);
-	            String searchTerm = splitLine[0];
-	            
-	            Company company = new Company();
-	            String returnString[] = GetABN.getABN(searchTerm);
-	            company.setAbn(returnString[1]);
-	            company.setName(returnString[5]);
-	            company.setState(returnString[11]);
-	            company.setPostcode(returnString[12]);
-	            
-	            
-	            fw.append(searchTerm + "," + 
-	                    company.getAbn() +","+ 
-	            		company.getName() +","+
-	            		company.getState()+","+ 
-	            		company.getPostcode() +"\n");
-	            
-	            
-	            System.out.println(company.getAbn() + ": " + company.getName());
+				// use comma as separator
+				String searchTerm = null;
+				String[] splitLine = line.split(cvsSplitBy);
+				try {
+					// grab the customer name to search
+					// Customer state was also included, however this was returning less results
+					searchTerm = splitLine[1];
+				} catch (ArrayIndexOutOfBoundsException e1) {
+					// check that search value is not null
+					System.out.println("Please check Customer Name: " + splitLine[1]);
+					e1.printStackTrace();
+				}
 
-	        }
+				Company company = new Company();
+				try {
+					String returnString[] = GetABN.getABN(searchTerm);
 
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	        
-	    } finally {
-            try {
-                fw.flush();
-                fw.close();
-            } catch (IOException e) {
-                System.out.println("Error while flushing/closing fileWriter !!!");
-                e.printStackTrace();
-            }
-	    	
-	    }
-	    return "";	
+					company.setAbn(returnString[1]);
+					company.setName(returnString[5]);
+					company.setState(returnString[11]);
+					company.setPostcode(returnString[12]);
+				} catch (Exception e) {
+
+					company.setAbn("Null");
+					company.setName("No results returned while searching for '" + searchTerm + "'");
+					company.setState("failed");
+					company.setPostcode("failed");
+				}
+
+				fw.append(searchTerm + "," + company.getAbn() + "," + company.getName() + "," + company.getState() + ","
+						+ company.getPostcode() + "\n");
+
+				System.out.println(company.getAbn() + ": " + company.getName());
+				csvTotalLines++;
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ArrayIndexOutOfBoundsException e) {
+			System.out.print("Cannot read line: ");
+			System.out.println(e);
+		} finally {
+			try {
+				fw.flush();
+				fw.close();
+			} catch (IOException e) {
+				System.out.println("Error while flushing/closing fileWriter !!!");
+				e.printStackTrace();
+			}
+		}
+		return csvTotalLines;
 	}
 
 }

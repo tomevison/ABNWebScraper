@@ -2,4 +2,5 @@
 * text=auto
 # ignore HTML
 *.html linguist-detectable=false
+*.css linguist-detectable=false
 
